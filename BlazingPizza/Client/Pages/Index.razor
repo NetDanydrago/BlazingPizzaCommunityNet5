@@ -1,0 +1,57 @@
+﻿@page "/"
+
+<div class="main">
+    <ul class="pizza-cards">
+        @if (Specials != null)
+        {
+            foreach (var Special in Specials)
+            {
+                <li @onclick="() => OrderState.ShowConfigurePizzaDialog(Special)"
+                    style="background-image:url('@Special.ImageUrl')">
+                    <div class="pizza-info">
+                        <span class="title">@Special.Name</span>
+                        @Special.Description
+                        <span class="price">
+                            @Special.GetFormattedBasePrice()
+                        </span>
+                    </div>
+                </li>
+            }
+        }
+    </ul>
+</div>
+
+<div class="sidebar">
+    @if (OrderState.Order.Pizzas.Any())
+    {
+        <div class="order-contents">
+            <h2>Tu orden</h2>
+
+            @foreach (var ConfiguredPizza in OrderState.Order.Pizzas)
+            {
+                <ConfiguredPizzaItem Pizza="ConfiguredPizza"
+                                     OnRemoved="@(() => OrderState.RemoveConfiguredPizza(ConfiguredPizza))" />
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-cart">Selecciona una pizza<br>para empezar</div>
+    }
+
+    <div class="order-total @(OrderState.Order.Pizzas.Any() ? "" : "hidden")">
+        Total:
+        <span class="total-price">@OrderState.Order.GetFormattedTotalPrice()</span>
+        <a class="btn btn-warning" href="checkout" >
+            Ordenar &gt;
+        </a>
+    </div>
+</div>
+
+
+@if (OrderState.ShowingConfigureDialog)
+{
+    <ConfigurePizzaDialog Pizza="OrderState.ConfiguringPizza"
+                          OnCancel="OrderState.CancelConfigurePizzaDialog"
+                          OnConfirm="OrderState.ConfirmConfigurePizzaDialog" />
+}
