@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,7 +23,8 @@ namespace BlazingPizza.Client
 
             builder.Services.AddScoped<OrderState>();
             builder.Services.AddApiAuthorization();
-
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("es-MX");
+            CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("es-MX");
             await builder.Build().RunAsync();
         }
     }

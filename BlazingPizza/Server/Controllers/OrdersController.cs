@@ -62,7 +62,7 @@ namespace BlazingPizza.Server.Controllers
         }
 
         [HttpGet("{orderId}")]
-        public async Task<IActionResult> GetOrder(int orderId)
+        public async Task<IActionResult> GetOrderWithStatus(int orderId)
         {
             IActionResult result;
 

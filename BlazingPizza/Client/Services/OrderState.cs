@@ -10,7 +10,7 @@ namespace BlazingPizza.Client.Services
     {
         public Pizza ConfiguringPizza { get; private set; }
         public bool ShowingConfigureDialog { get; private set; }
-        public Order Order { get; private set; } = new();
+        public Order Order { get; private set; } = new Order();
 
 
 

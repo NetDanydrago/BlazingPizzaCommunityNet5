@@ -13,7 +13,8 @@ namespace BlazingPizza.Server.Controllers
         readonly ILogger<OidcConfigurationController> Logger;
         readonly IClientRequestParametersProvider ClientRequestParametersProvider;
 
-        public OidcConfigurationController(IClientRequestParametersProvider provider, ILogger<OidcConfigurationController> logger)
+        public OidcConfigurationController(IClientRequestParametersProvider provider,
+            ILogger<OidcConfigurationController> logger)
             => (ClientRequestParametersProvider, Logger) = (provider, logger);
 
         [HttpGet("_configuration/{clientid}")]
