@@ -1,6 +1,25 @@
 ﻿@page "/authentication/{action}"
 
-<RemoteAuthenticatorView Action="@Action" />
+<RemoteAuthenticatorViewCore Action="@Action"
+                         TAuthenticationState="PizzaAuthenticationState"
+                         AuthenticationState="RemoteAuthenticationState"
+                         OnLogInSucceeded="RestorePizza">
+    <LogOut>
+        <div class="main">
+            Cerrando sesion....
+        </div>
+    </LogOut>
+    <LoggingIn>
+        <div class="main">
+            Dirigiendo a la pagina de inicio de sesión...
+        </div>
+    </LoggingIn>
+    <CompletingLoggingIn>
+        <div class="main">
+            Completando el inicio de sesión...
+        </div>
+    </CompletingLoggingIn>
+</RemoteAuthenticatorViewCore>
 
 @code{
     [Parameter]

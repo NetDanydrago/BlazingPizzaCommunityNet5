@@ -26,6 +26,11 @@ namespace BlazingPizza.Client.Services
             ShowingConfigureDialog = true;
         }
 
+        public void ReplaceOrder(Order order)
+        {
+            Order = order;
+        }
+
 
         public void CancelConfigurePizzaDialog()
         {

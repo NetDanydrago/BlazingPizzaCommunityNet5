@@ -1,5 +1,7 @@
-﻿using BlazingPizza.Shared;
+﻿using BlazingPizza.Client.Services;
+using BlazingPizza.Shared;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +15,7 @@ namespace BlazingPizza.Client.Pages
     public partial class OrderDetails : IDisposable
     {
         [Inject]
-        public HttpClient HttpClient { get; set; }
+        public OrdersClient OrdersClient { get; set; }
 
         [Parameter]
         public int OrderId { get; set; }
@@ -21,31 +23,36 @@ namespace BlazingPizza.Client.Pages
         OrderWithStatus OrderWithStatus;
         bool InvalidOrder;
 
-        CancellationTokenSource PollingCancellatioinToken;
+        CancellationTokenSource PollingCancellationToken;
 
         private async void PoolForUpdates()
         {
-            PollingCancellatioinToken = new CancellationTokenSource();
-            while (!PollingCancellatioinToken.IsCancellationRequested)
+            PollingCancellationToken = new CancellationTokenSource();
+            while (!PollingCancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     InvalidOrder = false;
-                    OrderWithStatus = await HttpClient.GetFromJsonAsync<OrderWithStatus>($"orders/{OrderId}");
+                    OrderWithStatus = await OrdersClient.GetOrder(OrderId);
                     StateHasChanged();
                     if (OrderWithStatus.IsDelivered)
                     {
-                        PollingCancellatioinToken.Cancel();
+                        PollingCancellationToken.Cancel();
                     }
                     else
                     {
                         await Task.Delay(4000);
                     }
                 }
+                catch(AccessTokenNotAvailableException ex)
+                {
+                    PollingCancellationToken?.Cancel();
+                    ex.Redirect();
+                }
                 catch (Exception ex)
                 {
                     InvalidOrder = true;
-                    PollingCancellatioinToken.Cancel();
+                    PollingCancellationToken.Cancel();
                     Console.Error.WriteLine(ex.Message);
                     StateHasChanged();
                 }
@@ -54,13 +61,13 @@ namespace BlazingPizza.Client.Pages
 
         protected override void OnParametersSet()
         {
-            PollingCancellatioinToken?.Cancel();
+            PollingCancellationToken?.Cancel();
             PoolForUpdates();
         }
 
         public void Dispose()
         {
-            PollingCancellatioinToken?.Cancel();
+            PollingCancellationToken?.Cancel();
         }
     }
 }

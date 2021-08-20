@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace BlazingPizza.Server.Controllers
@@ -20,6 +21,12 @@ namespace BlazingPizza.Server.Controllers
         public OrdersController(PizzaStoreContext context) =>
             this.Context = context;
 
+        private string GetUserId()
+        {
+            return HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+        
+        
         [HttpPost]
         public async Task<ActionResult<int>> PlaceOrder(Order order)
         {
@@ -27,6 +34,8 @@ namespace BlazingPizza.Server.Controllers
             // Establecer una ubicación de envío ficticia
             order.DeliveryLocation =
                 new LatLong(19.043679206924864, -98.19811254438645);
+
+            order.UserId = GetUserId();
 
             // Establecer el valor de Pizza.SpecialId y Topping.ToppingId
             // para que no se creen nuevos registros Special y Topping.
@@ -51,7 +60,7 @@ namespace BlazingPizza.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<OrderWithStatus>>> GetOrders()
         {
-            var Orders = await Context.Orders
+            var Orders = await Context.Orders.Where(o => o.UserId == GetUserId())
                 .Include(o => o.DeliveryLocation)
                 .Include(o => o.Pizzas).ThenInclude(p => p.Special)
                 .Include(o => o.Pizzas).ThenInclude(p => p.Toppings)
@@ -66,7 +75,7 @@ namespace BlazingPizza.Server.Controllers
         {
             IActionResult result;
 
-            var Order = await Context.Orders
+            var Order = await Context.Orders.Where(o => o.UserId == GetUserId())
                 .Where(o => o.OrderId == orderId)
                 .Include(o => o.DeliveryLocation)
                 .Include(o => o.Pizzas).ThenInclude(p => p.Special)

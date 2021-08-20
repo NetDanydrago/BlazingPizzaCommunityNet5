@@ -1,4 +1,6 @@
 ﻿@page "/checkout" 
+@attribute [Authorize]
+
 
 <div class="main">
     <EditForm Model="OrderState.Order.DeliveryAddress" OnValidSubmit="PlaceOrder">

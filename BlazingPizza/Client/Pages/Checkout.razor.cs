@@ -1,5 +1,6 @@
 ﻿using BlazingPizza.Client.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,21 +19,27 @@ namespace BlazingPizza.Client.Pages
         public NavigationManager NavigationManager { get; set; }
 
         [Inject]
-        public HttpClient HttpClient { get; set; }
+        public OrdersClient OrdersClient { get; set; }
 
         bool IsSubmitting;
 
         async Task PlaceOrder()
         {
-            if (!IsSubmitting)
+            IsSubmitting = true;
+            try
             {
-                IsSubmitting = true;
-                HttpResponseMessage response = await HttpClient.PostAsJsonAsync("orders", OrderState.Order);
-                int NewOrderID = await response.Content.ReadFromJsonAsync<int>();
+                int NewOrderID = await OrdersClient.PlaceOrder(OrderState.Order);
                 OrderState.ResetOrder();
-                IsSubmitting = false;
-                NavigationManager.NavigateTo($"myorders/{NewOrderID}");                
+                NavigationManager.NavigateTo($"myorders/{NewOrderID}");
             }
+            catch (AccessTokenNotAvailableException ex) 
+            {
+                ex.Redirect();
+            }
+            finally
+            {
+                IsSubmitting = false;
+            }                            
         }
 
     }

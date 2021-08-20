@@ -1,4 +1,5 @@
 using BlazingPizza.Client.Services;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,9 +23,16 @@ namespace BlazingPizza.Client
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
             builder.Services.AddScoped<OrderState>();
-            builder.Services.AddApiAuthorization();
+            builder.Services.AddApiAuthorization<PizzaAuthenticationState>(options => 
+            {
+                options.AuthenticationPaths.LogOutSucceededPath = "";
+            });
             CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("es-MX");
             CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("es-MX");
+
+            builder.Services.AddHttpClient<OrdersClient>(httpclient => httpclient.BaseAddress
+            = new(builder.HostEnvironment.BaseAddress))
+                .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
             await builder.Build().RunAsync();
         }
     }
