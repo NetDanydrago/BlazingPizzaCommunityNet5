@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using WebPush;
+using System.Text.Json;
 
 namespace BlazingPizza.Server.Controllers
 {
@@ -54,6 +56,14 @@ namespace BlazingPizza.Server.Controllers
             Context.Orders.Attach(order);
             await Context.SaveChangesAsync();
 
+            //en segundo plano, enviar notificaciones push de ser posible
+            var Subscription = await Context.NotificationSubscriptions.Where(
+                e => e.UserId == GetUserId()).SingleOrDefaultAsync();
+            if(Subscription != null)
+            {
+                _ = TrackAndSendNotificationAsync(order, Subscription);
+            }
+
             return order.OrderId;
         }
 
@@ -93,6 +103,45 @@ namespace BlazingPizza.Server.Controllers
             }
 
             return result;
+        }
+
+        private  async Task SendNotificationAsync(Order order,
+            NotificationSubscription subscription,string message)
+        {
+            //En una aplicacion real puedes generar tus propias llaves 
+            var PublicKey = "BLC8GOevpcpjQiLkO7JmVClQjycvTCYWm6Cq_a7wJZlstGTVZvwGFFHMYfXt6Njyvgx_GlXJeo5cSiZ1y4JOx1o";
+            var PrivateKey = "OrubzSz3yWACscZXjFQrrtDwCKg-TGFuWhluQ2wLXDo";
+
+            var PushSubscription =
+                new PushSubscription(subscription.Url, subscription.P256dh, subscription.Auth);
+            //Aqui puedes colocar tu propio correo de informacion
+            var VapidDetails = new VapidDetails("mailto:someone@example.com", PublicKey, PrivateKey);
+            var WebPushClient = new WebPushClient();
+            try
+            {
+                var Payload = JsonSerializer.Serialize(new
+                {
+                    message,
+                    url = $"myorders/{order.OrderId}"
+                });
+                await WebPushClient.SendNotificationAsync
+                    (PushSubscription, Payload, VapidDetails);
+            }
+            catch(Exception ex)
+            {
+                Console.Error.WriteLine($"error al enviar la notificacion push: {ex.Message}");
+            }
+
+        }
+
+        private  async Task TrackAndSendNotificationAsync
+            (Order order,NotificationSubscription subscription)
+        {
+            //En la un proyecto real otro proceso backend llevaria el seguimiento de la orden
+            await Task.Delay(OrderWithStatus.PreparationDuration);
+            await SendNotificationAsync(order, subscription, "!Tu orden ya esta en camino¡");
+            await Task.Delay(OrderWithStatus.DeliveryDuration);
+            await SendNotificationAsync(order, subscription, "!Tu orden ha sido entregada¡ !Disfrutala¡");
         }
     }
 }

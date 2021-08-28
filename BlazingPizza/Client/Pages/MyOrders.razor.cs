@@ -16,19 +16,19 @@ namespace BlazingPizza.Client.Pages
         [Inject]
         public OrdersClient OrdersClient { get; set; }
 
-        List<OrderWithStatus> OrdersWithStatus;
-
-        protected override async Task OnParametersSetAsync()
+        
+        async Task<List<OrderWithStatus>> LoadOrders()
         {
+            var OrdersWithStatus = new List<OrderWithStatus>();
             try
             {
                 OrdersWithStatus = await OrdersClient.GetOrders();
             }
-            catch(AccessTokenNotAvailableException ex)
+            catch (AccessTokenNotAvailableException ex)
             {
                 ex.Redirect();
             }
-           
+            return OrdersWithStatus;
         }
     }
 }

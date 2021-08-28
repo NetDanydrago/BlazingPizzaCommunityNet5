@@ -1,6 +1,8 @@
 ﻿using BlazingPizza.Client.Services;
+using BlazingPizza.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +23,16 @@ namespace BlazingPizza.Client.Pages
         [Inject]
         public OrdersClient OrdersClient { get; set; }
 
+        [Inject]
+        public IJSRuntime JSRuntime { get; set; }
+
         bool IsSubmitting;
+
+        protected override void OnInitialized()
+        {
+            //Preguntar al usuario si desea ser notificado con las actualizaciones de la orden
+            _ = RequestNotificationSubscriptionAsync();
+        }
 
         async Task PlaceOrder()
         {
@@ -42,5 +53,21 @@ namespace BlazingPizza.Client.Pages
             }                            
         }
 
+        async Task RequestNotificationSubscriptionAsync()
+        {
+            var Subscription = await JSRuntime.InvokeAsync<NotificationSubscription>(
+                "blazorPushNotifications.requestSubscription");
+            if(Subscription != null)
+            {
+                try
+                {
+                    await OrdersClient.SubscribeToNotification(Subscription);
+                }
+                catch(AccessTokenNotAvailableException ex)
+                {
+                    ex.Redirect();
+                }
+            }
+        }
     }
 }

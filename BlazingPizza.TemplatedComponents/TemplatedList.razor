@@ -1,0 +1,20 @@
+﻿@typeparam TItem
+@if (Items == null)
+{
+    @Loading
+}
+else if (Items.Count == 0)
+{
+    @Empty
+}
+else
+{
+    <div class="list-group @ListGroupClass">
+        @foreach(var Item in Items)
+        {
+            <div class="list-group-item">
+                @this.Item(Item)
+            </div>
+        }
+    </div>
+}
